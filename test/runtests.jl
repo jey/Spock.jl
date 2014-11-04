@@ -1,5 +1,9 @@
 using Spock
 using Base.Test
 
-# write your own tests here
-@test 1 == 1
+sc = SparkContext()
+rdd1 = parallelize(sc, 1:10)
+@assert count(rdd1) == 10
+rdd2 = map(rdd1, x -> x^2)
+@assert count(rdd2) == 10
+dump(collect(rdd2))
