@@ -3,7 +3,8 @@ module Spock
   import Base: Callable, map, collect, convert, count
   export SparkContext, RDD, parallelize
 
-  JavaCall.init(["-Xmx1024M", "-Djava.class.path=$(ENV["CLASSPATH"])"])
+  const classpath = get(ENV, "CLASSPATH", "")
+  JavaCall.init(["-Xmx1024M", "-Djava.class.path=spock.jar:spark.jar:$(classpath)"])
 
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays
