@@ -10,6 +10,7 @@ module Spock
   JArrays = @jimport java.util.Arrays
   JList = @jimport java.util.List
   JFunction = @jimport org.apache.spark.api.java.function.Function
+  JFlatMapFunction = @jimport org.apache.spark.api.java.function.FlatMapFunction
   JJavaRDD = @jimport org.apache.spark.api.java.JavaRDD
   JJavaSparkContext = @jimport org.apache.spark.api.java.JavaSparkContext
   JJuliaRDD = @jimport edu.berkeley.cs.amplab.spock.JuliaRDD
@@ -50,7 +51,7 @@ module Spock
 
   function map(rdd::RDD, f::Callable)
     jfunc = JJuliaFunction((JJuliaObject,), wrap(f))
-    RDD(jcall(rdd.jrdd, "map", JJavaRDD, (JFunction,), jfunc))
+    RDD(jcall(rdd.jrdd, "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc))
   end
 
   function collect(rdd::RDD)
