@@ -4,7 +4,7 @@ module Spock
   export SparkContext, RDD, parallelize
 
   const classpath = get(ENV, "CLASSPATH", "")
-  JavaCall.init(["-Xmx1024M", "-Djava.class.path=spock.jar:spark.jar:$(classpath)"])
+  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=spock.jar:spark.jar:$(classpath)"])
 
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays
@@ -40,13 +40,13 @@ module Spock
   function wrap(obj)
     buf = IOBuffer()
     serialize(buf, obj)
-    JJuliaObject((Vector{jbyte},), takebuf_array(buf)::Vector{Uint8})
+    JJuliaObject((Vector{jbyte},), takebuf_array(buf))
   end
 
   function unwrap(jobj)
     jobj = convert(JJuliaObject, jobj)
-    payload = jcall(jobj, "getPayload", Vector{jbyte}, ())
-    deserialize(IOBuffer(uint8(payload)))
+    payload = uint8(jcall(jobj, "getPayload", Vector{jbyte}, ()))
+    deserialize(IOBuffer(payload))
   end
 
   function map(rdd::RDD, f::Callable)

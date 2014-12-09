@@ -1,3 +1,5 @@
+CLASSPATH := lib/spark.jar:lib/commons-io-2.4.jar:lib/scala-library-2.10.4.jar
+
 check: spock.jar
 	julia test/runtests.jl
 

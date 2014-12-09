@@ -8,6 +8,7 @@ public class JuliaObject implements Serializable {
   byte[] payload;
 
   public JuliaObject(byte[] serializedPayload) {
+    assert serializedPayload.length > 0;
     this.payload = serializedPayload;
   }
 
@@ -17,7 +18,6 @@ public class JuliaObject implements Serializable {
 
   public static JuliaObject read(DataInputStream in) throws IOException {
     int len = in.readInt();
-    System.err.println(String.format("len: %d", len));
     byte[] payload = new byte[len];
     in.read(payload);
     return new JuliaObject(payload);
