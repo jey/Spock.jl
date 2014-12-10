@@ -4,7 +4,7 @@ module Spock
   export SparkContext, RDD, parallelize
 
   const classpath = get(ENV, "CLASSPATH", "")
-  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=spock.jar:spark.jar:$(classpath)"])
+  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=spock.jar:$(classpath)"])
 
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays

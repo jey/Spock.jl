@@ -1,11 +1,11 @@
-readint(input) = ntoh(read(input, Int32))
-readobj(input) = deserialize(IOBuffer(uint8(readbytes(input, readint(input)))))
+readint(input=STDIN) = ntoh(read(input, Int32))
+readobj(input=STDIN) = deserialize(IOBuffer(uint8(readbytes(input, readint(input)))))
 
-task = readobj(STDIN)
+task = readobj()
 while !eof(STDIN)
   buf = IOBuffer()
-  serialize(buf, task(readobj(STDIN)))
+  serialize(buf, task(readobj()))
   arr = takebuf_array(buf)::Vector{Uint8}
-  write(STDOUT, hton(int32(length(arr))))
-  write(STDOUT, arr)
+  write(hton(int32(length(arr))))
+  write(arr)
 end

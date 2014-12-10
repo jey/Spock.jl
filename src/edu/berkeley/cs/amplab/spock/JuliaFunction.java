@@ -9,6 +9,10 @@ import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
@@ -27,9 +31,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     Process worker = pb.start();
 
     // send input
-    FileOutputStream outf = new FileOutputStream("out.dump");
-    DataOutputStream out =
-      new DataOutputStream(new TeeOutputStream(outf, worker.getOutputStream()));
+    DataOutputStream out = new DataOutputStream(worker.getOutputStream());
     func.write(out);
     while(args.hasNext()) {
       args.next().write(out);
@@ -38,28 +40,27 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
 
     // start output reader
     final DataInputStream in = new DataInputStream(new BufferedInputStream(worker.getInputStream()));
-    final LinkedList<JuliaObject> results = new LinkedList<JuliaObject>();
-    Thread reader = new Thread() {
-      public boolean done = false;
-      public void run() {
-        try {
-          while(true) {
-            results.add(JuliaObject.read(in));
+    Future<Collection<JuliaObject>> results = Executors.newSingleThreadExecutor().submit(
+      new Callable<Collection<JuliaObject>>() {
+        @Override
+        public LinkedList<JuliaObject> call() throws IOException {
+          LinkedList<JuliaObject> results = new LinkedList<JuliaObject>();
+          try {
+            while(true) {
+              results.add(JuliaObject.read(in));
+            }
+          } catch(EOFException ex) {
           }
-        } catch(EOFException ex) {
-          done = true;
-        } catch(IOException ex) {
-          System.err.println("FIXME WTF");
-          System.exit(-1);
+          return results;
         }
       }
-    };
-    reader.start();
+    );
 
-    // finish work
-    worker.waitFor();
-    reader.join();
-    assert worker.exitValue() == 0;
-    return results;
+    // finish up
+    if(worker.waitFor() != 0) {
+      throw new RuntimeException(String.format("Spock worker died with exitValue=%d", worker.exitValue()));
+    }
+
+    return results.get();
   }
 }
