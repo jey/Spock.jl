@@ -9,3 +9,4 @@ while !eof(STDIN)
   write(hton(int32(length(arr))))
   write(arr)
 end
+write(int32(0))

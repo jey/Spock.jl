@@ -17,8 +17,8 @@ public class JuliaObject implements Serializable {
   }
 
   public static JuliaObject read(DataInputStream in) throws IOException {
-    // FIXME: throw IOException when EOF is encountered after partial read
     int len = in.readInt();
+    if(len == 0) return null;
     byte[] payload = new byte[len];
     in.read(payload);
     return new JuliaObject(payload);

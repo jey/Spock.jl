@@ -45,11 +45,10 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
         @Override
         public LinkedList<JuliaObject> call() throws IOException {
           LinkedList<JuliaObject> results = new LinkedList<JuliaObject>();
-          try {
-            while(true) {
-              results.add(JuliaObject.read(in));
-            }
-          } catch(EOFException ex) {
+          while(true) {
+            JuliaObject obj = JuliaObject.read(in);
+            if(obj == null) break;
+            results.add(obj);
           }
           return results;
         }
