@@ -4,6 +4,7 @@ import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.commons.io.output.TeeOutputStream;
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -31,7 +32,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     Process worker = pb.start();
 
     // send input
-    DataOutputStream out = new DataOutputStream(worker.getOutputStream());
+    DataOutputStream out = new DataOutputStream(new BufferedOutputStream(worker.getOutputStream()));
     func.write(out);
     while(args.hasNext()) {
       args.next().write(out);
