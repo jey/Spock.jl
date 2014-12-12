@@ -1,12 +1,35 @@
-readint(input=STDIN) = ntoh(read(input, Int32))
-readobj(input=STDIN) = deserialize(IOBuffer(uint8(readbytes(input, readint(input)))))
+readint() = ntoh(read(STDIN, Int32))
+readobj() = deserialize(IOBuffer(uint8(readbytes(STDIN, readint()))))
 
-task = readobj()
-while !eof(STDIN)
+function writeobj(obj)
   buf = IOBuffer()
-  serialize(buf, task(readobj()))
-  arr = takebuf_array(buf)::Vector{Uint8}
+  serialize(buf, obj)
+  arr = takebuf_array(buf)
   write(hton(int32(length(arr))))
   write(arr)
 end
+
+writeexc(exc) = writeobj(exc)
+
+try
+  task = readobj()
+  while !eof(STDIN)
+    arg = readobj()
+    try
+      result = task(arg)
+    catch exc
+      write(int32(0))
+      write(int16(2)) # OOB 2: task error (fatal)
+      writeexc(exc)
+      rethrow(exc)
+    end
+    writeobj(result)
+  end
+catch exc
+  write(int32(0))
+  write(int16(1)) # OOB 1: internal error (fatal)
+  writeexc(exc)
+  rethrow(exc)
+end
 write(int32(0))
+write(int16(0)) # OOB 0: done
