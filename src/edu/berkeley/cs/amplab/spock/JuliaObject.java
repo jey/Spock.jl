@@ -6,10 +6,14 @@ import java.io.Serializable;
 
 class SpockException extends Exception {
   public SpockException(JuliaObject exc) {
+    throw new RuntimeException("SpockException");
   }
 }
 
 class JuliaException extends SpockException {
+  public JuliaException(JuliaObject exc) {
+    super(exc);
+  }
 }
 
 public class JuliaObject implements Serializable {
@@ -24,7 +28,7 @@ public class JuliaObject implements Serializable {
     return payload;
   }
 
-  public static JuliaObject read(DataInputStream in) throws IOException {
+  public static JuliaObject read(DataInputStream in) throws IOException, SpockException {
     int len = in.readInt();
     if(len == 0) {
       short oob = in.readShort();
@@ -35,7 +39,7 @@ public class JuliaObject implements Serializable {
       } else if(oob == 2) {
         throw new JuliaException(readObj(in, in.readInt()));
       } else {
-        throw new SpockException(String.format("unknown OOB msg %d", oob));
+        throw new RuntimeException(String.format("unknown OOB msg %d", oob));
       }
     } else {
       return readObj(in, len);

@@ -25,6 +25,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     this.func = func;
   }
 
+  @Override
   public Iterable<JuliaObject> call(Iterator<JuliaObject> args) throws Exception {
     // launch worker
     ProcessBuilder pb = new ProcessBuilder("julia", "src/worker.jl");
@@ -44,7 +45,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     Future<Collection<JuliaObject>> results = Executors.newSingleThreadExecutor().submit(
       new Callable<Collection<JuliaObject>>() {
         @Override
-        public LinkedList<JuliaObject> call() throws IOException {
+        public LinkedList<JuliaObject> call() throws IOException, SpockException {
           LinkedList<JuliaObject> results = new LinkedList<JuliaObject>();
           while(true) {
             JuliaObject obj = JuliaObject.read(in);
