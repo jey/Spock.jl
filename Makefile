@@ -1,8 +1,16 @@
-CLASSPATH := lib/spark.jar:lib/commons-io-2.4.jar:lib/scala-library-2.10.4.jar
+BASE_CLASSPATH := lib/spark.jar
+BUILD_CLASSPATH := $(BASE_CLASSPATH)
+#BUILD_CLASSPATH := $(BUILD_CLASSPATH):lib/scala-library-2.10.4.jar
+RUNTIME_CLASSPATH := conf:$(BASE_CLASSPATH):spock.jar
 
 check: spock.jar
-	CLASSPATH=$(CLASSPATH) julia test/runtests.jl
+	CLASSPATH=$(RUNTIME_CLASSPATH) julia test/runtests.jl
 
 spock.jar: $(shell find src/ -name \*.java)
-	javac -cp $(CLASSPATH) $^
-	cd src && find . -name \*.class -print0 | xargs -0 jar cf ../$@
+	mkdir -p bin
+	javac -Xlint -d bin -cp $(BUILD_CLASSPATH) $^
+	jar cf spock.jar -C bin .
+
+.PHONY: clean
+clean:
+	rm -rf bin spock.jar

@@ -7,7 +7,7 @@ module Spock
   export SparkContext, RDD, parallelize
 
   const classpath = get(ENV, "CLASSPATH", "")
-  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=spock.jar:$(classpath)"])
+  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=$(classpath)"])
 
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays
@@ -26,7 +26,7 @@ module Spock
     jsc::JJavaSparkContext
   end
 
-  function SparkContext(master::String="local", appname::String="Julia Spock App @ $(spockid())")
+  function SparkContext(master::String="local", appname::String="Julia Spock app @ $(spockid())")
     SparkContext(JJavaSparkContext((JString, JString), master, appname))
   end
 

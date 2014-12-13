@@ -5,18 +5,23 @@ import java.io.IOException;
 import java.io.Serializable;
 
 class SpockException extends Exception {
+  private static final long serialVersionUID = 1;
+
   public SpockException(JuliaObject exc) {
     throw new RuntimeException("SpockException");
   }
 }
 
 class JuliaException extends SpockException {
+  private static final long serialVersionUID = 1;
+
   public JuliaException(JuliaObject exc) {
     super(exc);
   }
 }
 
 public class JuliaObject implements Serializable {
+  private static final long serialVersionUID = 1;
   byte[] payload;
 
   public JuliaObject(byte[] serializedPayload) {

@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, JuliaObject> {
+  private static final long serialVersionUID = 1;
   final JuliaObject func;
 
   public JuliaFunction(JuliaObject func) {
