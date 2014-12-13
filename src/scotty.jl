@@ -1,5 +1,5 @@
 module Scotty
-  export readint, readobj, writeint, writeobj, maptask
+  export maptask
 
   readint() = ntoh(read(STDIN, Int32))
   readobj(len) = deserialize(IOBuffer(uint8(readbytes(STDIN, len))))
@@ -20,5 +20,26 @@ module Scotty
         writeobj(f(readobj(len)))
       end
     end
+  end
+
+  function worker()
+    try
+      task = readobj()
+      try
+        task()
+      catch exc
+        writeint(0)
+        writeint(2) # OOB 2: task error (fatal)
+        writeobj(exc)
+        rethrow(exc)
+      end
+    catch exc
+      writeint(0)
+      writeint(1) # OOB 1: internal error (fatal)
+      writeobj(exc)
+      rethrow(exc)
+    end
+    writeint(0)
+    writeint(0) # OOB 0: done
   end
 end
