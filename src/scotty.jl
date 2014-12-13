@@ -1,5 +1,5 @@
 module Scotty
-  export maptask
+  export maptask, reducetask
 
   readint() = ntoh(read(STDIN, Int32))
   readobj(len) = deserialize(IOBuffer(uint8(readbytes(STDIN, len))))
@@ -14,11 +14,31 @@ module Scotty
     write(arr)
   end
 
+  function objseq(f)
+    while (len = readint()) != 0
+      f(readobj(len))
+    end
+  end
+
   function maptask(f)
     () -> begin
-      while (len = readint()) != 0
-        writeobj(f(readobj(len)))
+      objseq() do arg
+        writeobj(f(arg))
       end
+    end
+  end
+
+  function reducetask(f)
+    () -> begin
+      accum = nothing
+      objseq() do arg
+        if accum == nothing
+          accum = arg
+        else
+          accum = f(arg, accum)
+        end
+      end
+      writeobj(accum)
     end
   end
 

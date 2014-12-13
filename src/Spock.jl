@@ -3,7 +3,7 @@ include("scotty.jl")
 module Spock
   using Scotty
   using JavaCall
-  import Base: Callable, map, collect, convert, count
+  import Base: Callable, map, collect, convert, count, reduce
   export SparkContext, RDD, parallelize
 
   const classpath = get(ENV, "CLASSPATH", "")
@@ -52,9 +52,17 @@ module Spock
     deserialize(IOBuffer(payload))
   end
 
-  function map(f::Callable, rdd::RDD)
-    jfunc = JJuliaFunction((JJuliaObject,), wrap(maptask(f)))
+  function transform(rdd::RDD, task)
+    jfunc = JJuliaFunction((JJuliaObject,), wrap(task))
     RDD(jcall(rdd.jrdd, "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc))
+  end
+
+  function map(f::Callable, rdd::RDD)
+    transform(rdd, maptask(f))
+  end
+
+  function reduce(f::Callable, rdd::RDD)
+    reduce(f, collect(transform(rdd, reducetask(f))))
   end
 
   function collect(rdd::RDD)
