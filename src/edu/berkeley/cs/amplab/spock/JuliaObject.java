@@ -6,9 +6,10 @@ import java.io.Serializable;
 
 class SpockException extends Exception {
   private static final long serialVersionUID = 1;
+  JuliaObject exc;
 
   public SpockException(JuliaObject exc) {
-    throw new RuntimeException("SpockException");
+    this.exc = exc;
   }
 }
 
@@ -36,7 +37,7 @@ public class JuliaObject implements Serializable {
   public static JuliaObject read(DataInputStream in) throws IOException, SpockException {
     int len = in.readInt();
     if(len == 0) {
-      short oob = in.readShort();
+      int oob = in.readInt();
       if(oob == 0) {
         return null;
       } else if(oob == 1) {

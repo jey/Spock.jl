@@ -39,11 +39,12 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     while(args.hasNext()) {
       args.next().write(out);
     }
+    out.writeInt(0);
     out.close();
 
     // start output reader
     final DataInputStream in = new DataInputStream(new BufferedInputStream(worker.getInputStream()));
-    Future<Collection<JuliaObject>> results = Executors.newSingleThreadExecutor().submit(
+    Collection<JuliaObject> results = Executors.newSingleThreadExecutor().submit(
       new Callable<Collection<JuliaObject>>() {
         @Override
         public LinkedList<JuliaObject> call() throws IOException, SpockException {
@@ -56,13 +57,13 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
           return results;
         }
       }
-    );
+    ).get();
 
     // finish up
     if(worker.waitFor() != 0) {
       throw new RuntimeException(String.format("Spock worker died with exitValue=%d", worker.exitValue()));
+    } else {
+      return results;
     }
-
-    return results.get();
   }
 }

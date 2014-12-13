@@ -4,7 +4,7 @@ BUILD_CLASSPATH := $(BASE_CLASSPATH)
 RUNTIME_CLASSPATH := conf:$(BASE_CLASSPATH):spock.jar
 
 check: spock.jar
-	CLASSPATH=$(RUNTIME_CLASSPATH) julia test/runtests.jl
+	CLASSPATH=$(RUNTIME_CLASSPATH) julia test/runtests.jl 2> stderr.log
 
 spock.jar: $(shell find src/ -name \*.java)
 	mkdir -p bin

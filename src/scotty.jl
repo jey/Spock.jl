@@ -1,21 +1,23 @@
 module Scotty
-  export readint, readobj, writeobj, maptask
+  export readint, readobj, writeint, writeobj, maptask
 
   readint() = ntoh(read(STDIN, Int32))
-  readobj() = deserialize(IOBuffer(uint8(readbytes(STDIN, readint()))))
+  readobj(len) = deserialize(IOBuffer(uint8(readbytes(STDIN, len))))
+  readobj() = readobj(readint())
+  writeint(x) = write(hton(int32(x)))
 
   function writeobj(obj)
     buf = IOBuffer()
     serialize(buf, obj)
     arr = takebuf_array(buf)
-    write(hton(int32(length(arr))))
+    writeint(length(arr))
     write(arr)
   end
 
   function maptask(f)
-    function task()
-      while !eof(STDIN)
-        writeobj(f(readobj()))
+    () -> begin
+      while (len = readint()) != 0
+        writeobj(f(readobj(len)))
       end
     end
   end
