@@ -16,9 +16,9 @@ module Spock
   JFlatMapFunction = @jimport org.apache.spark.api.java.function.FlatMapFunction
   JJavaRDD = @jimport org.apache.spark.api.java.JavaRDD
   JJavaSparkContext = @jimport org.apache.spark.api.java.JavaSparkContext
-  JJuliaRDD = @jimport edu.berkeley.cs.amplab.spock.JuliaRDD
-  JJuliaFunction = @jimport edu.berkeley.cs.amplab.spock.JuliaFunction
-  JJuliaObject = @jimport edu.berkeley.cs.amplab.spock.JuliaObject
+  JJuliaRDD = @jimport edu.berkeley.bids.spock.JuliaRDD
+  JJuliaFunction = @jimport edu.berkeley.bids.spock.JuliaFunction
+  JJuliaObject = @jimport edu.berkeley.bids.spock.JuliaObject
 
   spockid() = "$(gethostname())[$(getipaddr())]/$(getpid())"
 

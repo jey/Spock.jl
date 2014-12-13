@@ -1,4 +1,4 @@
-package edu.berkeley.cs.amplab.spock;
+package edu.berkeley.bids.spock;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;

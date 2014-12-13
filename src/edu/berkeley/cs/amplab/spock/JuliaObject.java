@@ -1,4 +1,4 @@
-package edu.berkeley.cs.amplab.spock;
+package edu.berkeley.bids.spock;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
