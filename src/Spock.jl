@@ -52,7 +52,7 @@ module Spock
     deserialize(IOBuffer(payload))
   end
 
-  function map(rdd::RDD, f::Callable)
+  function map(f::Callable, rdd::RDD)
     jfunc = JJuliaFunction((JJuliaObject,), wrap(maptask(f)))
     RDD(jcall(rdd.jrdd, "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc))
   end
