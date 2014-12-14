@@ -4,13 +4,13 @@ using Base.Test
 sc = SparkContext()
 
 rdd1 = parallelize(sc, 1:10)
-@assert count(rdd1) == 10
-@assert sum(collect(rdd1)) == 55
-@assert reduce(+, rdd1) == 55
+@assert 10 == count(rdd1)
+@assert 55 == sum(collect(rdd1))
+@assert 55 == reduce(+, rdd1)
 
 rdd2 = map(x -> x^2, rdd1)
-@assert sum(collect(rdd2)) == 385
-@assert reduce(+, rdd2) == 385
+@assert 385 == sum(collect(rdd2))
+@assert 385 == reduce(+, rdd2)
 
 @assert "moo" == begin
   try
@@ -20,6 +20,12 @@ rdd2 = map(x -> x^2, rdd1)
     @assert contains(exc.msg, "JuliaException")
     "moo"
   end
+end
+
+@assert 55 == reduce(rdd1) do x, y
+  println("Ekke Ekke Ekke Ekke Ptangya Zoooooooom Boing Ni!")
+  @assert eof(STDIN)
+  x + y
 end
 
 println("Spock: all tests passed")

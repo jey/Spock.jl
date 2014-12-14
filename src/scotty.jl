@@ -1,17 +1,19 @@
 module Scotty
   export maptask, reducetask
+  const inf = STDIN
+  const outf = STDOUT
 
-  readint() = ntoh(read(STDIN, Int32))
-  readobj(len) = deserialize(IOBuffer(uint8(readbytes(STDIN, len))))
+  readint() = ntoh(read(inf, Int32))
+  readobj(len) = deserialize(IOBuffer(uint8(readbytes(inf, len))))
   readobj() = readobj(readint())
-  writeint(x) = write(hton(int32(x)))
+  writeint(x) = write(outf, hton(int32(x)))
 
   function writeobj(obj)
     buf = IOBuffer()
     serialize(buf, obj)
     arr = takebuf_array(buf)
     writeint(length(arr))
-    write(arr)
+    write(outf, arr)
   end
 
   function objseq(f)
@@ -43,6 +45,8 @@ module Scotty
   end
 
   function worker()
+    redirect_stdout(STDERR)
+    close(redirect_stdin()[2])
     try
       task = readobj()
       try
