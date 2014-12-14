@@ -45,9 +45,9 @@ module Scotty
   end
 
   function worker()
-    redirect_stdout(STDERR)
-    close(redirect_stdin()[2])
     try
+      redirect_stdout(STDERR)
+      close(redirect_stdin()[2])
       task = readobj()
       try
         task()
