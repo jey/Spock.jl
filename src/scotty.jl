@@ -1,5 +1,5 @@
 module Scotty
-  export maptask, reducetask
+  export maptask, reducetask, pipetask, intask, outtask
   const inf = STDIN
   const outf = STDOUT
 
@@ -16,32 +16,44 @@ module Scotty
     write(outf, arr)
   end
 
-  function objseq(f)
-    while (len = readint()) != 0
-      f(readobj(len))
+  function intask()
+    Task() do
+      while (len = readint()) != 0
+        produce(readobj(len))
+      end
     end
   end
 
+  function outtask(inp)
+    map(writeobj, inp)
+  end
+
   function maptask(f)
-    () -> begin
-      objseq() do arg
-        writeobj(f(arg))
+    (inp) -> begin
+      Task() do
+        map(arg -> produce(f(arg)), inp)
       end
     end
   end
 
   function reducetask(f)
-    () -> begin
-      accum = nothing
-      objseq() do arg
-        if accum == nothing
-          accum = arg
-        else
-          accum = f(arg, accum)
+    (inp) -> begin
+      Task() do
+        accum = nothing
+        for arg in inp
+          if accum == nothing
+            accum = arg
+          else
+            accum = f(arg, accum)
+          end
         end
+        produce(accum)
       end
-      writeobj(accum)
     end
+  end
+
+  function pipetask(t2, t1)
+    (inp) -> t2(t1(inp))
   end
 
   function worker()
@@ -50,7 +62,7 @@ module Scotty
       close(redirect_stdin()[2])
       task = readobj()
       try
-        task()
+        outtask(task(intask()))
       catch exc
         writeint(0)
         writeint(2) # OOB 2: task error (fatal)

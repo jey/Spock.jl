@@ -30,14 +30,40 @@ module Spock
     SparkContext(JJavaSparkContext((JString, JString), master, appname))
   end
 
-  type RDD
+  abstract RDD
+
+  type JavaRDD <: RDD
     jrdd::JJavaRDD
   end
 
+  jrdd(rdd::RDD) = rdd.jrdd
+
+  type TransformedRDD <: RDD
+    parent::RDD
+    task::Function
+    jrdd::Union(Nothing,JJavaRDD)
+  end
+
+  TransformedRDD(parent, task) = TransformedRDD(parent, task, nothing)
+
+  function jrdd(rdd::TransformedRDD)
+    if rdd.jrdd === nothing
+      jfunc = JJuliaFunction((JJuliaObject,), wrap(rdd.task))
+      rdd.jrdd = jcall(jrdd(rdd.parent), "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc)
+    end
+    rdd.jrdd::JJavaRDD
+  end
+
+  ispipelineable(rdd::RDD) = true
+
   function parallelize(sc::SparkContext, collection)
-    arr = collect(map(wrap, collection))
-    jlist = convert(JList, arr)
-    RDD(jcall(sc.jsc, "parallelize", JJavaRDD, (JList,), jlist))
+    jcoll = convert(JList, collect(map(wrap, collection)))
+    JavaRDD(jcall(sc.jsc, "parallelize", JJavaRDD, (JList,), jcoll))
+  end
+
+  function parallelize(sc::SparkContext, collection, numparts)
+    jcoll = convert(JList, collect(map(wrap, collection)))
+    JavaRDD(jcall(sc.jsc, "parallelize", JJavaRDD, (JList, jint), jcoll, numparts))
   end
 
   function wrap(obj)
@@ -53,8 +79,11 @@ module Spock
   end
 
   function transform(rdd::RDD, task)
-    jfunc = JJuliaFunction((JJuliaObject,), wrap(task))
-    RDD(jcall(rdd.jrdd, "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc))
+    if isa(rdd, TransformedRDD) && ispipelineable(rdd)
+      TransformedRDD(rdd.parent, pipetask(task, rdd.task))
+    else
+      TransformedRDD(rdd, task)
+    end
   end
 
   function map(f::Callable, rdd::RDD)
@@ -66,12 +95,12 @@ module Spock
   end
 
   function collect(rdd::RDD)
-    jlist = jcall(rdd.jrdd, "collect", JList, ())
+    jlist = jcall(jrdd(rdd), "collect", JList, ())
     map(unwrap, jcall(jlist, "toArray", Vector{JObject}, ()))
   end
 
   function count(rdd::RDD)
-    jcall(rdd.jrdd, "count", jlong, ())
+    jcall(jrdd(rdd), "count", jlong, ())
   end
 
   function convert(::Type{JList}, A::Array)
