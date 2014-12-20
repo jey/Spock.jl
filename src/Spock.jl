@@ -48,7 +48,7 @@ module Spock
 
   function jrdd(rdd::TransformedRDD)
     if rdd.jrdd === nothing
-      jfunc = JJuliaFunction((JJuliaObject,), wrap(rdd.task))
+      jfunc = JJuliaFunction((JJuliaObject,), jbox(rdd.task))
       rdd.jrdd = jcall(jrdd(rdd.parent), "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc)
     end
     rdd.jrdd::JJavaRDD
@@ -57,22 +57,22 @@ module Spock
   ispipelineable(rdd::RDD) = true
 
   function parallelize(sc::SparkContext, collection)
-    jcoll = convert(JList, collect(map(wrap, collection)))
+    jcoll = convert(JList, collect(map(jbox, collection)))
     JavaRDD(jcall(sc.jsc, "parallelize", JJavaRDD, (JList,), jcoll))
   end
 
   function parallelize(sc::SparkContext, collection, numparts)
-    jcoll = convert(JList, collect(map(wrap, collection)))
+    jcoll = convert(JList, collect(map(jbox, collection)))
     JavaRDD(jcall(sc.jsc, "parallelize", JJavaRDD, (JList, jint), jcoll, numparts))
   end
 
-  function wrap(obj)
+  function jbox(obj)
     buf = IOBuffer()
     serialize(buf, obj)
     JJuliaObject((Vector{jbyte},), takebuf_array(buf))
   end
 
-  function unwrap(jobj)
+  function junbox(jobj)
     jobj = convert(JJuliaObject, jobj)
     payload = uint8(jcall(jobj, "getPayload", Vector{jbyte}, ()))
     deserialize(IOBuffer(payload))
@@ -96,7 +96,7 @@ module Spock
 
   function collect(rdd::RDD)
     jlist = jcall(jrdd(rdd), "collect", JList, ())
-    map(unwrap, jcall(jlist, "toArray", Vector{JObject}, ()))
+    map(junbox, jcall(jlist, "toArray", Vector{JObject}, ()))
   end
 
   function count(rdd::RDD)
