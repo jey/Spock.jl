@@ -1,5 +1,5 @@
 module Scotty
-  export maptask, reducetask, pipetask, intask, outtask
+  export maptask, reducetask, pipetask
   const inf = STDIN
   const outf = STDOUT
 
@@ -24,23 +24,23 @@ module Scotty
     end
   end
 
-  function outtask(inp)
-    map(writeobj, inp)
+  function outtask(iter)
+    map(writeobj, iter)
   end
 
   function maptask(f)
-    (inp) -> begin
+    (partid, iter) -> begin
       Task() do
-        map(arg -> produce(f(arg)), inp)
+        map(arg -> produce(f(arg)), iter)
       end
     end
   end
 
   function reducetask(f)
-    (inp) -> begin
+    (partid, iter) -> begin
       Task() do
         accum = nothing
-        for arg in inp
+        for arg in iter
           if accum == nothing
             accum = arg
           else
@@ -53,7 +53,7 @@ module Scotty
   end
 
   function pipetask(t2, t1)
-    (inp) -> t2(t1(inp))
+    (partid, iter) -> t2(partid, t1(partid, iter))
   end
 
   function worker()
@@ -61,8 +61,9 @@ module Scotty
       redirect_stdout(STDERR)
       close(redirect_stdin()[2])
       task = readobj()
+      partid = readint()
       try
-        outtask(task(intask()))
+        outtask(task(partid, intask()))
       catch exc
         writeint(0)
         writeint(2) # OOB 2: task error (fatal)

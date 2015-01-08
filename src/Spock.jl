@@ -4,7 +4,7 @@ module Spock
   using Scotty
   using JavaCall
   import Base: Callable, map, collect, convert, count, reduce
-  export SparkContext, RDD, parallelize
+  export SparkContext, RDD, parallelize, transform
 
   const classpath = get(ENV, "CLASSPATH", "")
   JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=$(classpath)"])
@@ -13,7 +13,7 @@ module Spock
   JArrays = @jimport java.util.Arrays
   JList = @jimport java.util.List
   JFunction = @jimport org.apache.spark.api.java.function.Function
-  JFlatMapFunction = @jimport org.apache.spark.api.java.function.FlatMapFunction
+  JFunction2 = @jimport org.apache.spark.api.java.function.Function2
   JJavaRDD = @jimport org.apache.spark.api.java.JavaRDD
   JJavaSparkContext = @jimport org.apache.spark.api.java.JavaSparkContext
   JJuliaRDD = @jimport edu.berkeley.bids.spock.JuliaRDD
@@ -49,7 +49,7 @@ module Spock
   function jrdd(rdd::TransformedRDD)
     if rdd.jrdd === nothing
       jfunc = JJuliaFunction((JJuliaObject,), jbox(rdd.task))
-      rdd.jrdd = jcall(jrdd(rdd.parent), "mapPartitions", JJavaRDD, (JFlatMapFunction,), jfunc)
+      rdd.jrdd = jcall(jrdd(rdd.parent), "mapPartitionsWithIndex", JJavaRDD, (JFunction2, jboolean), jfunc, false)
     end
     rdd.jrdd::JJavaRDD
   end
@@ -78,7 +78,11 @@ module Spock
     deserialize(IOBuffer(payload))
   end
 
-  function transform(rdd::RDD, task)
+  # Analogous to `mapPartitionsWithIndex`.
+  #
+  # `task` will be called once per input partition with arguments of
+  # (partition_id, input_iter) and returns an iterable of new contents.
+  function transform(task::Function, rdd::RDD)
     if isa(rdd, TransformedRDD) && ispipelineable(rdd)
       TransformedRDD(rdd.parent, pipetask(task, rdd.task))
     else
@@ -87,11 +91,11 @@ module Spock
   end
 
   function map(f::Callable, rdd::RDD)
-    transform(rdd, maptask(f))
+    transform(maptask(f), rdd)
   end
 
   function reduce(f::Callable, rdd::RDD)
-    reduce(f, collect(transform(rdd, reducetask(f))))
+    reduce(f, collect(transform(reducetask(f), rdd)))
   end
 
   function collect(rdd::RDD)

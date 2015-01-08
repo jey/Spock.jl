@@ -1,7 +1,7 @@
 package edu.berkeley.bids.spock;
 import org.apache.spark.rdd.RDD;
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.Function2;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -10,7 +10,7 @@ import java.io.FileOutputStream;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, JuliaObject> {
+public class JuliaFunction implements Function2<Integer, Iterator<JuliaObject>, Iterator<JuliaObject>> {
   private static final long serialVersionUID = 1;
   final JuliaObject func;
 
@@ -23,7 +23,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
   }
 
   @Override
-  public Iterable<JuliaObject> call(Iterator<JuliaObject> args) throws Exception {
+  public Iterator<JuliaObject> call(Integer partId, Iterator<JuliaObject> args) throws Exception {
     // launch worker
     ProcessBuilder pb = new ProcessBuilder("julia", "-L", getScottyPath(), "-e", "Scotty.worker()");
     pb.redirectError(ProcessBuilder.Redirect.INHERIT);
@@ -32,6 +32,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     // send input
     DataOutputStream out = new DataOutputStream(new BufferedOutputStream(worker.getOutputStream()));
     func.write(out);
+    out.writeInt(partId.intValue());
     while(args.hasNext()) {
       args.next().write(out);
     }
@@ -51,7 +52,7 @@ public class JuliaFunction implements FlatMapFunction<Iterator<JuliaObject>, Jul
     if(worker.waitFor() != 0) {
       throw new RuntimeException(String.format("Spock worker died with exitValue=%d", worker.exitValue()));
     } else {
-      return results;
+      return results.iterator();
     }
   }
 }
