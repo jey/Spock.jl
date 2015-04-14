@@ -18,14 +18,14 @@ public class JuliaFunction implements Function2<Integer, Iterator<JuliaObject>, 
     this.func = func;
   }
 
-  String getScottyPath() {
-    return "src/scotty.jl";
+  String getWorkerPath() {
+    return "src/worker.jl";
   }
 
   @Override
   public Iterator<JuliaObject> call(Integer partId, Iterator<JuliaObject> args) throws Exception {
     // launch worker
-    ProcessBuilder pb = new ProcessBuilder("julia", "-L", getScottyPath(), "-e", "Scotty.worker()");
+    ProcessBuilder pb = new ProcessBuilder("julia", "-L", getWorkerPath(), "-e", "SpockWorker.worker()");
     pb.redirectError(ProcessBuilder.Redirect.INHERIT);
     Process worker = pb.start();
 

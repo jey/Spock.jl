@@ -1,4 +1,4 @@
-module Scotty
+module SpockWorker
   export maptask, reducetask, pipetask
   const inf = STDIN
   const outf = STDOUT

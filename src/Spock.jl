@@ -1,7 +1,7 @@
-include("scotty.jl")
+include("worker.jl")
 
 module Spock
-  using Scotty
+  using SpockWorker
   using JavaCall
   import Base: Callable, map, collect, convert, count, reduce
   export SparkContext, RDD, parallelize, transform
