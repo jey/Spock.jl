@@ -12,11 +12,9 @@ module Spock
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays
   JList = @jimport java.util.List
-  JFunction = @jimport org.apache.spark.api.java.function.Function
   JFunction2 = @jimport org.apache.spark.api.java.function.Function2
   JJavaRDD = @jimport org.apache.spark.api.java.JavaRDD
   JJavaSparkContext = @jimport org.apache.spark.api.java.JavaSparkContext
-  JJuliaRDD = @jimport edu.berkeley.bids.spock.JuliaRDD
   JJuliaFunction = @jimport edu.berkeley.bids.spock.JuliaFunction
   JJuliaObject = @jimport edu.berkeley.bids.spock.JuliaObject
 
