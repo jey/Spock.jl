@@ -6,8 +6,15 @@ module Spock
   import Base: Callable, map, collect, convert, count, reduce
   export SparkContext, RDD, parallelize, transform
 
-  const classpath = get(ENV, "CLASSPATH", "")
-  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=$(classpath)"])
+  function compute_classpath()
+    cp = get(ENV, "CLASSPATH", "")
+    confdir = Pkg.dir("Spock", "conf")
+    spockjar = Pkg.dir("Spock", "lib", "spock.jar")
+    sparkjar = Pkg.dir("Spock", "lib", "spark.jar")
+    "$cp:$confdir:$spockjar:$sparkjar"
+  end
+
+  JavaCall.init(["-ea", "-Xmx1024M", "-Djava.class.path=$(compute_classpath())"])
 
   JClass = @jimport java.lang.Class
   JArrays = @jimport java.util.Arrays
