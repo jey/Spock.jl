@@ -51,6 +51,8 @@ module Spock
 
   TransformedRDD(parent, task) = TransformedRDD(parent, task, nothing)
 
+  ispipelineable(rdd::TransformedRDD) = true
+
   function jrdd(rdd::TransformedRDD)
     if rdd.jrdd === nothing
       jfunc = JJuliaFunction((JJuliaObject,), jbox(rdd.task))
@@ -58,8 +60,6 @@ module Spock
     end
     rdd.jrdd::JJavaRDD
   end
-
-  ispipelineable(rdd::RDD) = true
 
   function parallelize(sc::SparkContext, collection)
     jcoll = convert(JList, collect(map(jbox, collection)))
